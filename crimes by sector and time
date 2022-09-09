@@ -1,0 +1,136 @@
+"""
+This file answers the questions for question 2 of the research problem,
+there are ten functions in this file.
+This file imports two plugins and reads in the SPD crime data frame.
+The ten functions in this file are
+get_time_diff, time_diff_crime, time_diff_area, max_time_diff_by_sector_area
+min_time_diff_by_sector_area, number_of_crime_per_type,
+total_number_of_crimes, crime_by_sector, max_crime_by_sector, and
+min_crime_by_sector.
+All functions take in the dateframe which is read in the main file.
+"""
+import pandas as pd
+data_file = 'SPD_Crime_Data_Report2022.csv'
+
+
+def get_time_diff(df):
+    '''
+    This function takes in the crime dataframe and compares,
+    the time difference between the start of the crime,
+    to the report time of the crime.
+    Finally it prints out the column 'Difference Datetime'
+    '''
+    df['Offense Start DateTime'] = pd.to_datetime(df['Offense Start DateTime'])
+    df['Report DateTime'] = pd.to_datetime(df['Report DateTime'])
+    df['Diff Datetime'] = df['Report DateTime'] - df['Offense Start DateTime']
+    return df
+
+
+def time_diff_crime(df):
+    '''
+    This takes in the crime dataframe and prints out,
+    the time difference between start and report times by crime.
+    '''
+    time_diff_cri = df.groupby('Offense Parent Group')['Diff Datetime'].mean()
+    print(time_diff_cri)
+    print("Mean Time by Crime is", time_diff_cri.mean())
+
+
+def time_diff_area(df):
+    '''
+    This takes in the crime dataframe and prints out,
+    the time difference between start and report times by area of Seattle.
+    '''
+    time_diff_by_area = df.groupby('MCPP')['Diff Datetime'].mean()
+    print(time_diff_by_area)
+    print("Mean Time by Area is", time_diff_by_area.mean())
+
+
+def max_time_diff_by_sector_area(df):
+    '''
+    This takes in the crime dataframe and prints out,
+    the max difference between start and report times by crime and sector.
+    '''
+    time_diff_by_area = df.groupby('MCPP')['Diff Datetime'].mean()
+    time_diff_cri = df.groupby('Offense Parent Group')['Diff Datetime'].mean()
+    print("Max Time by Crime is", time_diff_cri.max())
+    print("Max Time by Area is", time_diff_by_area.max())
+
+
+def min_time_diff_by_sector_area(df):
+    '''
+    This takes in the crime dataframe and prints out,
+    the min difference between start and report times by crime and sector.
+    '''
+    time_diff_by_area = df.groupby('MCPP')['Diff Datetime'].mean()
+    time_diff_cri = df.groupby('Offense Parent Group')['Diff Datetime'].mean()
+    print("Min Time by Crime is",time_diff_cri.min())
+    print("Min Time by Area is",time_diff_by_area.min())
+
+
+def number_of_crime_per_type(df):
+    '''
+    This takes in the crime dataframe anda prints out the number of crimes,
+    per type of crime in Seattle.
+    '''
+    number_of_crime = df.groupby('Offense Parent Group')['Offense ID'].count()
+    print(number_of_crime)
+    print("Min Crimes Per Crime are ", number_of_crime.min())
+    print("Max Crimes Per Crime are ", number_of_crime.max())
+    print("Mean Crimes Per Crime are ", number_of_crime.mean())
+
+
+def total_number_of_crimes(df):
+    '''
+    This takes in the crime dataframe anda prints out the number of crimes,
+    overall in Seattle.
+    '''
+    counts = df['Offense ID'].count()
+    print("Number of Crimes are ", counts)
+
+
+def crime_by_sector(df):
+    '''
+    This takes in the crime dataframe anda prints out the number of crimes,
+    per area/sector in Seattle.
+    '''
+    crime_count_per_sector = df.groupby('MCPP')['Offense ID'].count()
+    print(crime_count_per_sector)
+
+
+def max_crime_by_sector(df):
+    '''
+    This takes in the crime dataframe anda prints out,
+    the max number of crimes number of crimes per area in Seattle.
+    '''
+    max_crime_count_per_sector = df.groupby('MCPP')['Offense ID'].count()
+    print("Max Crimes Per Sector are ", max_crime_count_per_sector.max())
+
+
+def min_crime_by_sector(df):
+    '''
+    This takes in the crime dataframe anda prints out,
+    the min number of crimes number of crimes per area in Seattle.
+    '''
+    min_crime_count_per_sector = df.groupby('MCPP')['Offense ID'].count()
+    number_of_crime = df.groupby('Offense Parent Group')['Offense ID'].count()
+    print("Min Crimes by Sector are ", min_crime_count_per_sector.min())
+    print("Mean Crimes by Sector are ", min_crime_count_per_sector.mean())
+
+
+def main():
+    df = pd.read_csv(data_file)
+    df = get_time_diff(df)
+    time_diff_crime(df)
+    time_diff_area(df)
+    max_time_diff_by_sector_area(df)
+    min_time_diff_by_sector_area(df)
+    number_of_crime_per_type(df)
+    total_number_of_crimes(df)
+    crime_by_sector(df)
+    max_crime_by_sector(df)
+    min_crime_by_sector(df)
+
+
+if __name__ == '__main__':
+    main()
