@@ -1,5 +1,5 @@
 # Analyzing-Crime-in-Seattle
-Welcome to the README file of our project: Analyzing crime in Seattle. This project analyzes data of reported crimes in Seattle to better understand relationships of various parameters like the Seattle neighborhood, time of day, coordinates, to crime in Seattle.
+Welcome to the README file of our project: Analyzing crime in Seattle. This project analyzes data of reported crimes in Seattle to better understand relationships of various parameters like the Seattle neighborhood, time of day, coordinates, to crime in Seattle. This project was created by two students at the University of Washington, Yushi Nakaoka and Zachary Grybos.
 This project attempts to answer the research questions below using various data analysis methods.
 Research Questions:
 1. What are the demographics of the city of Seattle in terms of population? Which areas do these demographics live? Which areas have more people of color or more diverse? What is the average household size and where are the most single residents? 
