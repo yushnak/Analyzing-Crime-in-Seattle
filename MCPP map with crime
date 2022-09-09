@@ -1,0 +1,87 @@
+'''
+This file prints out the map of a chosen MCPP Seattle neighborhood, and crime type,
+based on Seattle Police Department crime data report of 2022.
+'''
+import matplotlib.pyplot as plt
+import pandas as pd
+import geopandas as gpd
+from shapely.geometry import Point
+
+
+data_file = 'SPD_Crime_Data_Report2022.csv'
+seattle_map = 'Micro_Community_Policing_Plans.geojson'
+gdf = gpd.read_file(seattle_map)
+
+
+'''
+This function takes in the mmcp(neighborhood within Seattle),
+and a type of crime. The naming conventions of these parameters
+must be from the columns of the data(data_file) used. The crime
+report data of 2022 is graphed on top of the geospatial data of
+Seattle. The crime reports that contain geographical coordinates
+of the crime incident are plotted. The graph only plots the
+specified mmcp and crime in the parameters. If no parameters are
+specified, the function graphs the whole of Seattle with all
+reported crimes in the data.
+'''
+
+
+def plot_crime_in_area(mmcp='Seattle', crime='crime'):
+    df = pd.read_csv(data_file).dropna()
+    df = df[(df['Longitude'] != 0) & (df['Latitude'] != 0)]
+    if mmcp == 'Seattle':
+        pass
+    else:
+        df = df[(df['MCPP'] == mmcp)]
+
+    if crime == 'crime':
+        pass
+    else:
+        df = df[(df['Offense Parent Group'] == crime)]
+
+    df['coordinates'] = [Point(-long, lat) for long, lat in
+                         zip(df['Longitude'] * -1, df['Latitude'])]
+
+    crime_spot = gpd.GeoDataFrame(df, geometry='coordinates')
+
+    fig, ax = plt.subplots(1, figsize=(20, 10))
+
+    if mmcp == 'Seattle':
+        gdf.plot(ax=ax)
+    else:
+        gdf[gdf['NEIGHBORHOOD'] == mmcp].plot(ax=ax)
+
+    crime_spot.plot(ax=ax, c='#000000', markersize=10)
+    plt.title(f'2022: Reported {crime} in {mmcp}')
+    plt.xlabel('Latitude')
+    plt.ylabel('Longitude')
+    plt.text(0, 0.98, f'Total {crime} reported: {len(crime_spot)}',
+             transform=plt.gca().transAxes)
+    plt.savefig(f'Reported_{crime}_in_{mmcp}.png')
+
+
+'''
+This is a simple function outputs the MCPP(a neighborhood of Seattle)
+that has the most reported cases of a given crime.
+This function takes in a type of crime as a parameter.
+The types of crime accepted are the names in the 'Offense Parent Group'
+column of the data_file(i.e. 'LARCENY-THEFT')
+'''
+
+
+def mcpp_with_most_crime(crime):
+    df = pd.read_csv(data_file)
+    df = df[df['Offense Parent Group'] == crime].dropna()
+    df = df['MCPP'].mode()
+    #df = df.groupby('Offense Parent Group')['MCPP'].agg(pd.Series.mode).to_frame()
+    print(df)
+
+
+def main():
+    mcpp_with_most_crime('DRUNKENNESS')
+    plot_crime_in_area('DOWNTOWN COMMERCIAL', 'LARCENY-THEFT')
+    plot_crime_in_area('QUEEN ANNE', 'LARCENY-THEFT')
+
+
+if __name__ == '__main__':
+    main()
