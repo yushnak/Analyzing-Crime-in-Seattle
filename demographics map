@@ -1,0 +1,130 @@
+"""
+This file answers the questions for question 1 of the research problem,
+there are five functions in this file.
+This file imports three plugins and reads in three dataframes.
+The first one is a geojson file that uses the 2010 census tracks for Seattle.
+The second one is a csv file that is about population stats in Seattle,
+based and using the 2010 census tracks.
+Finally the last csv file is about housing stats in Seattle based on,
+the 2010 census and census tracks.
+The five functions are merge, demographics, plot_pop_demographics,
+plot_diversity, and plot_household_size.
+The first function merges the three dataframes into one merged one,
+that the rest of the function uses.
+"""
+import matplotlib.pyplot as plt
+import pandas as pd
+import geopandas as gpd
+census = "Census_Tracts_2010.geojson"
+housing = "Census_Tract_-_2010_Housing_Statistics.csv"
+population = "Census_Tract_-_2010_Population_Statistics.csv"
+
+
+def merge(df1, df2, df3):
+    '''
+    Merges the three datasets df1 is the geojson of the 2010 census tracks,
+    df2 is the housing csv dataframe based on Seattle 2010 census tracks,
+    and finally df3 is the population csv that is based,
+    on Seattle 2010 census tracks.
+    It returns the final merged dataset that will be used in the other methods.
+    '''
+    merge = df1.merge(df2, left_on='TRACT', right_on='TRACT', how='left')
+    f_merge = merge.merge(df3, left_on='TRACT', right_on='TRACT', how='left')
+    return f_merge
+
+
+def demographics(final_merge):
+    '''
+    This takes in the final merged data set and finds,
+    the total population of Seattle and the total population of the,
+    4 main racial groups Whites, Blacks, Asians and Hispanics/Latinos.
+    It also calculates the percentage of color or minority people in Seattle.
+    Finally it prints out the results.
+    '''
+    total_pop = final_merge['Total_Population'].sum()
+    white_pop = final_merge['White_alone_or_in_combination'].sum()
+    black_pop = final_merge['Black_or_African_American_alone'].sum()
+    asian_pop = final_merge['Asian_alone_or_in_combination'].sum()
+    hispanic_latino_pop = final_merge['Population_Hispanic_or_Latino'].sum()
+    total_minority_pop = final_merge['Total_Person_of_Color'].sum()
+    percentage_of_minority = total_minority_pop / total_pop * 100
+    print(total_pop)
+    print(white_pop)
+    print(black_pop)
+    print(asian_pop)
+    print(hispanic_latino_pop)
+    print(total_minority_pop)
+    print(percentage_of_minority)
+
+
+def plot_pop_demographics(final_merge):
+    '''
+    This takes in the final merged dataset and plots out 4 maps.
+    The first one is the population of Asians in Seattle,
+    the seconed one plots out the population of Whites in Seattle,
+    the third plot plots ou the population of Hispanics/Latinos in Seattle,
+    and finally the fourth one plots out the Black population in Seattle.
+    Finally it saves the visual in a png file called pop_demographics.
+    '''
+    fig, [[ax1, ax2], [ax3, ax4]] = plt.subplots(2, 2, figsize=(20, 10))
+    final_merge.plot(column='Asian_alone_or_in_combination',
+                     legend=True, ax=ax1)
+    final_merge.plot(column='White_alone_or_in_combination',
+                     legend=True, ax=ax2)
+    final_merge.plot(column='Population_Hispanic_or_Latino',
+                     legend=True, ax=ax3)
+    final_merge.plot(column='Black_or_African_American_alone',
+                     legend=True, ax=ax4)
+    ax1.set_title('Asian Population')
+    ax2.set_title('White Population')
+    ax3.set_title('Hispanic Population')
+    ax4.set_title('Black Population')
+    plt.savefig('pop_demographics.png')
+
+
+def plot_diversity(final_merge):
+    '''
+    It takes in the final merged dataset and plots out two maps.
+    The first one shows where where people of color live in Seattle,
+    while the second one shows the diversity index of Seattle.
+    Finally it saves into a png called diversity_demographics.
+    '''
+    fig, [ax1, ax2] = plt.subplots(2, figsize=(20, 10))
+    final_merge.plot(column='Total_Person_of_Color', legend=True, ax=ax1)
+    final_merge.plot(column='DIVERSITY_INDEX', legend=True, ax=ax2)
+    ax1.set_title('Total Population of Color')
+    ax2.set_title('Diversity Index')
+    plt.savefig('diversity_demographics.png')
+
+
+def plot_household_size(final_merge):
+    '''
+    This also takes in the final merged dataset and plots out two maps.
+    The first one shows the average household size by census track,
+    while the second one is a combine of rental occupied 1 person household,
+    and owner occupied 1 person household.
+    Finally it saves in a png called household_size.
+    '''
+    fig, [ax1, ax2] = plt.subplots(2, figsize=(20, 10))
+    final_merge.plot(column='Average_Household_Size', legend=True, ax=ax1)
+    final_merge.plot(column='Renter_occupied_Household_1_person',
+                     legend=True, ax=ax2)
+    final_merge.plot(column='Owner_occupied_Household_1_person', ax=ax2)
+    ax1.set_title('Average Household Size')
+    ax2.set_title('Units With 1 Person')
+    plt.savefig('household_size.png')
+
+
+def main():
+    df_census = gpd.read_file(census)
+    df_house = pd.read_csv(housing)
+    df_pop = pd.read_csv(population)
+    final_merge = merge(df_census, df_house, df_pop)
+    demographics(final_merge)
+    plot_pop_demographics(final_merge)
+    plot_diversity(final_merge)
+    plot_household_size(final_merge)
+
+
+if __name__ == '__main__':
+    main()
