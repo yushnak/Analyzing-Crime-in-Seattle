@@ -1,0 +1,76 @@
+'''
+Classification Machine Learning model used to predict the type of crime based on three paramters:
+physical location (x,y coordinates), and time of crime.
+'''
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+
+'''
+Takes in the data, and three parameters. These three parameters
+predict what type of crime was committed. The data is turned
+into a pandas dataframe, and split into test data and train data.
+The machine learning creates a classifier decision tree model
+(sklearn) and using the train data. Checks to see using the
+test data how accurate the model is. This is repeated 50 times,
+changing the max depth of the tree model to see how 'deep' the tree
+should go in order to optimize the machine learning model and avoid
+over/underfitting.
+'''
+def predict_offense(data, parameter_one, parameter_two, parameter_three):
+    data = data.loc[:, ['Offense', 'Longitude', 'Latitude',
+                    'Offense Start DateTime']].dropna()
+    features = data.loc[:, (data.columns != 'Offense')]
+    labels = data['Offense']
+    labels = pd.get_dummies(labels)
+    features = pd.get_dummies(features)
+    features_train, features_test, labels_train, labels_test = \
+    train_test_split(features, labels, test_size=0.2, random_state=2)
+
+    accuracies = []
+    for i in range(1, 50):
+        model = DecisionTreeClassifier(max_depth=i, random_state=1)
+        model.fit(features_train, labels_train)
+
+        pred_train = model.predict(features_train)
+        train_acc = accuracy_score(labels_train, pred_train)
+
+        pred_test = model.predict(features_test)
+        test_acc = accuracy_score(labels_test, pred_test)
+
+        accuracies.append({'max depth': i, 'train accuracy': train_acc, 
+                        'test accuracy': test_acc})
+    accuracies = pd.DataFrame(accuracies)
+    return accuracies
+
+
+'''
+Plots a graph to visualize the accuracy of the model(one for the
+test data and one for train data) over the max_depth value. Takes
+in the dataFrame from predict_offense(), and column name and name of
+type of data(test or train). Since the dataframe from predict_offense()
+is used as a parameter, this function can only be called after the
+predict_offense() function.
+'''
+def plot_accuracies(accuracies, column, name):
+    sns.relplot(kind='line', x='max depth', y=column, data=accuracies)
+    plt.title(f'{name} Accuracy as Max Depth Changes')
+    plt.xlabel('Max Depth')
+    plt.ylabel(f'{name} Accuracy')
+    plt.ylim(0, 1)
+    plt.show()
+
+
+def main():
+    data = pd.read_csv('SPD_Crime_Data_Report2022.csv')
+    accuracies = predict_offense(data, 'Longitude', 'Latitude', 'Offense Start DateTime')
+    plot_accuracies(accuracies, 'train accuracy', 'Train')
+    plot_accuracies(accuracies, 'test accuracy', 'Test')
+
+
+if __name__ == '__main__':
+    main()
