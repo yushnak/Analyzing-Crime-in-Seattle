@@ -1,0 +1,50 @@
+import pandas as pd
+import plotly.express as px
+import plotly.io as pio
+import geopandas as gpd
+import pyproj
+import json
+
+pio.renderers.default = 'chrome'
+data_file = 'SPD_Crime_Data_Report2022.csv'
+df = pd.read_csv(data_file)
+seattle_map = 'Micro_Community_Policing_Plans.geojson'
+
+
+class crimes_by_MCPP:
+
+
+    '''
+    this method initializes the crimes by mcpp object. When called, the method will clean the data_file
+    and creates a new dataframe with two columns: location(MCPP), and most common crime in that location
+    (most_common_crime)
+    '''
+    def __init__(self):
+        self._mcpp = gpd.read_file(seattle_map)['NEIGHBORHOOD'].tolist()
+        most_common_crime = df.groupby('MCPP')['Offense Parent Group'].agg(pd.Series.mode).to_frame().reset_index()
+        most_common_crime = most_common_crime.rename({'Offense Parent Group': 'Most Common Crime'})
+        self._most_common_crime = most_common_crime[most_common_crime['MCPP'].isin(self._mcpp)]
+        #for neighborhood in self._mcpp:
+        #    if neighborhood not in self._most_common_crime['MCPP'].tolist():
+        #        self._mcpp.remove(neighborhood)
+        
+        #print(self._most_common_crime)
+
+
+    def show(self):
+        id_map = {}
+        seattle_mcpp = json.load(open(seattle_map, 'r'))
+        seattle_mcpp['features'][0]
+        for feature in seattle_mcpp['features']:
+            feature['id'] = feature['properties']['OBJECTID']
+            id_map[feature['properties']['NEIGHBORHOOD']] = feature['id']
+        #print(gpd.read_file(seattle_map)['NEIGHBORHOOD'])
+        self._most_common_crime['id'] = self._most_common_crime['MCPP'].apply(lambda x: id_map[x])
+        #print(self._most_common_crime)
+        #print(seattle_mcpp['features'][0].keys())
+        #print(id_map)
+        fig = px.choropleth(self._most_common_crime, locations='id', geojson=seattle_mcpp)
+        fig.update_geos(fitbounds='"locations"', visible=False)
+        fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+        fig.show()
+'''
